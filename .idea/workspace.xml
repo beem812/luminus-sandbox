@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c4ba47f8-1d30-40a7-98b2-875af06accf6" name="Default Changelist" comment="" />
+    <list default="true" id="c4ba47f8-1d30-40a7-98b2-875af06accf6" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/guestbook_dev.db.mv.db" beforeDir="false" afterPath="$PROJECT_DIR$/guestbook_dev.db.mv.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/clj/guestbook/core.clj" beforeDir="false" afterPath="$PROJECT_DIR$/src/clj/guestbook/core.clj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cljs/guestbook/core.cljs" beforeDir="false" afterPath="$PROJECT_DIR$/src/cljs/guestbook/core.cljs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -17,10 +22,14 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectCodeStyleSettingsMigration">
     <option name="version" value="1" />
   </component>
   <component name="ProjectId" id="1ZBkCyu2rEegt4FDQCRxJOEZuGK" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -28,6 +37,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
@@ -41,7 +51,7 @@
       <recent name="$PROJECT_DIR$/src/cljs/guestbook" />
     </key>
   </component>
-  <component name="ReplState" timestamp="1584854034789">{:repl-history {:ide [], :local [{:command &quot;(defstate env\n  :start\n  (load-config\n    :merge\n    [(args)\n     (source/from-system-props)\n     (source/from-env)]))&quot;, :offset 118, :ns &quot;guestbook.config&quot;} {:command &quot;(defn -main [&amp; args]\n  (mount/start #'guestbook.config/env)\n  (cond\n    (nil? (:database-url env))\n    (do\n      (log/error \&quot;Database configuration not found, :database-url environment variable must be set before running\&quot;)\n      (System/exit 1))\n    (some #{\&quot;init\&quot;} args)\n    (do\n      (migrations/init (select-keys env [:database-url :init-script]))\n      (System/exit 0))\n    (migrations/migration? args)\n    (do\n      (migrations/migrate args (select-keys env [:database-url]))\n      (System/exit 0))\n    :else\n    (start-app args)))&quot;, :offset 536, :ns &quot;guestbook.core&quot;} {:command &quot;(-main)&quot;, :offset 7, :ns &quot;user&quot;} {:command &quot;(in-ns guestbook.core)&quot;, :offset 22, :ns &quot;user&quot;}], :remote []}}</component>
+  <component name="ReplState" timestamp="1584924987417">{:repl-history {:ide [], :local [{:command &quot;(defstate env\n  :start\n  (load-config\n    :merge\n    [(args)\n     (source/from-system-props)\n     (source/from-env)]))&quot;, :offset 118, :ns &quot;guestbook.config&quot;} {:command &quot;(defn -main [&amp; args]\n  (mount/start #'guestbook.config/env)\n  (cond\n    (nil? (:database-url env))\n    (do\n      (log/error \&quot;Database configuration not found, :database-url environment variable must be set before running\&quot;)\n      (System/exit 1))\n    (some #{\&quot;init\&quot;} args)\n    (do\n      (migrations/init (select-keys env [:database-url :init-script]))\n      (System/exit 0))\n    (migrations/migration? args)\n    (do\n      (migrations/migrate args (select-keys env [:database-url]))\n      (System/exit 0))\n    :else\n    (start-app args)))&quot;, :offset 536, :ns &quot;guestbook.core&quot;} {:command &quot;(-main)&quot;, :offset 7, :ns &quot;user&quot;} {:command &quot;(in-ns guestbook.core)&quot;, :offset 22, :ns &quot;user&quot;}], :remote []}}</component>
   <component name="RunManager" selected="Clojure REPL.Repl">
     <configuration name="Repl" type="ClojureREPL" factoryName="Local" activateToolWindowBeforeRun="false">
       <module name="guestbook" />
@@ -137,22 +147,22 @@
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
     <state x="689" y="421" key="#com.intellij.ide.util.projectWizard.JdkChooserPanel.MyDialog/0.0.1680.1050@0.0.1680.1050" timestamp="1584851627657" />
-    <state width="818" height="295" key="GridCell.Tab.0.bottom" timestamp="1584832665783">
+    <state width="818" height="295" key="GridCell.Tab.0.bottom" timestamp="1584924987407">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
-    <state width="818" height="295" key="GridCell.Tab.0.bottom/0.0.1680.1050@0.0.1680.1050" timestamp="1584832665783" />
-    <state width="818" height="295" key="GridCell.Tab.0.center" timestamp="1584832665783">
+    <state width="818" height="295" key="GridCell.Tab.0.bottom/0.0.1680.1050@0.0.1680.1050" timestamp="1584924987407" />
+    <state width="818" height="295" key="GridCell.Tab.0.center" timestamp="1584924987406">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
-    <state width="818" height="295" key="GridCell.Tab.0.center/0.0.1680.1050@0.0.1680.1050" timestamp="1584832665783" />
-    <state width="818" height="295" key="GridCell.Tab.0.left" timestamp="1584832665782">
+    <state width="818" height="295" key="GridCell.Tab.0.center/0.0.1680.1050@0.0.1680.1050" timestamp="1584924987406" />
+    <state width="818" height="295" key="GridCell.Tab.0.left" timestamp="1584924987405">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
-    <state width="818" height="295" key="GridCell.Tab.0.left/0.0.1680.1050@0.0.1680.1050" timestamp="1584832665782" />
-    <state width="818" height="295" key="GridCell.Tab.0.right" timestamp="1584832665783">
+    <state width="818" height="295" key="GridCell.Tab.0.left/0.0.1680.1050@0.0.1680.1050" timestamp="1584924987405" />
+    <state width="818" height="295" key="GridCell.Tab.0.right" timestamp="1584924987407">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
-    <state width="818" height="295" key="GridCell.Tab.0.right/0.0.1680.1050@0.0.1680.1050" timestamp="1584832665783" />
+    <state width="818" height="295" key="GridCell.Tab.0.right/0.0.1680.1050@0.0.1680.1050" timestamp="1584924987407" />
     <state x="428" y="275" key="IDE.errors.dialog" timestamp="1584851050483">
       <screen x="0" y="0" width="1680" height="1050" />
     </state>
