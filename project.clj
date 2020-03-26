@@ -33,34 +33,16 @@
                  [selmer "1.12.18"]
                  [cljs-ajax "0.7.3"]
                  [reagent "0.8.1"]
-                 [re-frame "0.10.6"]]
+                 [re-frame "0.10.6"]
+                 [thheller/shadow-cljs "2.8.93"]]
 
   :min-lein-version "2.0.0"
 
-  :source-paths ["src/clj" "src/cljc"]
+  :source-paths ["src/clj" "src/cljc" "scr/cljs"]
   :test-paths ["test/clj"]
   :resource-paths ["resources" "target/cljsbuild"]
   :target-path "target/%s/"
   :main ^:skip-aot guestbook.core
-
-  :plugins [[lein-cljsbuild "1.1.7"]]
-
-  :cljsbuild
-  {:builds
-   {:app {:source-paths ["src/cljs" "src/cljc"]
-          :compiler {:output-to "target/cljsbuild/public/js/app.js"
-                     :output-dir "target/cljsbuild/public/js/out"
-                     :main "guestbook.core"
-                     :asset-path "/js/out"
-                     :optimizations :none
-                     :source-map true
-                     :pretty-print true}}}}
-
-  :clean-targets
-  ^{:protect false}
-  [:target-path
-   [:cljsbuild :builds :app :compiler :output-dir]
-   [:cljsbuild :builds :app :compiler :output-to]]
 
   :profiles
   {:uberjar {:omit-source true
@@ -77,11 +59,12 @@
                                  [prone "2019-07-08"]
                                  [ring/ring-devel "1.8.0"]
                                  [ring/ring-mock "0.4.0"]
-                                 [org.clojure/clojurescript "1.10.238" :scope "provided"]]
+                                 [binaryage/devtools "0.9.10"]
+                                 [org.clojure/clojurescript "1.10.597" :scope "provided"]]
                   :plugins      [[com.jakemccrary/lein-test-refresh "0.24.1"]
                                  [jonase/eastwood "0.3.5"]]
 
-                  :source-paths ["env/dev/clj"]
+                  :source-paths ["env/dev/clj" "env/dev/cljc" "env/dev/cljs" "src/cljs"]
                   :resource-paths ["env/dev/resources"]
                   :repl-options {:init-ns user}
                   :injections [(require 'pjstadig.humane-test-output)

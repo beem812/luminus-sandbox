@@ -121,6 +121,17 @@
           [:div.columns>div.column
            [message-form]]]]))))
 
+(defn ^:dev/after-load mount-components []
+  (.log js/console "Mounting Components...")
+  (r/render [#'home] (.getElementById js/document "content"))
+  (.log js/console "Components Mounted!"))
+
+(defn init! []
+  (.log js/console "Initializing App...")
+  (rf/dispatch [:app/initialize])
+  (get-messages)
+  (mount-components))
+
 (r/render
  [home]
  (.getElementById js/document "content"))
