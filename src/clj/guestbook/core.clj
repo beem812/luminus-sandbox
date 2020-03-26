@@ -73,3 +73,6 @@
     :else
     (start-app args)))
   
+
+(comment
+  (start-app ""))

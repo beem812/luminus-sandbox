@@ -45,7 +45,7 @@
 (defn send-message! [fields]
   (if-let [validation-errors (validate-message @fields)]
     (rf/dispatch [:errors/set validation-errors])
-    (POST "/message"
+    (POST "/api/message"
       {:format :json
        :headers {"Accept" "application/transit+json" "x-csrf-token" (.-value (.getElementById js/document "token"))}
        :params @fields
@@ -58,7 +58,7 @@
                          (rf/dispatch [:errors/set (get-in % [:response :errors])]))})))
 
 (defn get-messages []
-  (GET "/messages"
+  (GET "/api/messages"
     {:headers {"Accept" "application/transit+json"}
      :handler #(rf/dispatch [:messages/set (:messages %)])}))
 
