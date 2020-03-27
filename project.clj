@@ -31,9 +31,9 @@
                  [ring/ring-core "1.8.0"]
                  [ring/ring-defaults "0.3.2"]
                  [selmer "1.12.18"]
-                 [cljs-ajax "0.7.3"]
-                 [reagent "0.8.1"]
-                 [re-frame "0.10.6"]
+                 [cljs-ajax "0.8.0"]
+                 [reagent "0.10.0"]
+                 [re-frame "0.12.0"]
                  [thheller/shadow-cljs "2.8.93"]]
 
   :min-lein-version "2.0.0"
@@ -42,14 +42,16 @@
   :test-paths ["test/clj"]
   :resource-paths ["resources" "target/cljsbuild"]
   :target-path "target/%s/"
-  :main ^:skip-aot guestbook.core
+  :main guestbook.core
 
   :profiles
   {:uberjar {:omit-source true
-             :aot :all
+             :aot :all 
              :uberjar-name "guestbook.jar"
-             :source-paths ["env/prod/clj"]
-             :resource-paths ["env/prod/resources"]}
+             :source-paths ["env/prod/clj" "env/prod/cljc" "env/prod/cljs" "src/cljs"]
+             :resource-paths ["env/prod/resources"]
+             :prep-tasks ["compile" ["run" "-m" "shadow.cljs.devtools.cli" "release" "app"]]
+             }
 
    :dev           [:project/dev :profiles/dev]
    :test          [:project/dev :project/test :profiles/test]
@@ -60,7 +62,8 @@
                                  [ring/ring-devel "1.8.0"]
                                  [ring/ring-mock "0.4.0"]
                                  [binaryage/devtools "0.9.10"]
-                                 [org.clojure/clojurescript "1.10.597" :scope "provided"]]
+                                 [org.clojure/clojurescript "1.10.597" :scope "provided"]
+                                 [day8.re-frame/re-frame-10x "0.6.0"]]
                   :plugins      [[com.jakemccrary/lein-test-refresh "0.24.1"]
                                  [jonase/eastwood "0.3.5"]]
 

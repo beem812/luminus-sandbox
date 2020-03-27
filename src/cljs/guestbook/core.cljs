@@ -1,5 +1,6 @@
 (ns guestbook.core
     (:require [reagent.core :as r]
+              [reagent.dom :as rd]
               [re-frame.core :as rf]
               [ajax.core :refer [GET POST]]
               [clojure.string :as string]
@@ -10,16 +11,64 @@
  (fn [_ _]
    {:db {:messages/loading? true}}))
 
+(rf/reg-event-db 
+ :form/set-field
+ [(rf/path :form/fields)]
+ (fn [fields  [_ id value]]
+   (assoc fields id value)))
+
+(rf/reg-event-db
+ :form/clear-fields
+ [(rf/path :form/fields)]
+ (fn [_ _]
+   {}))
+
 (rf/reg-sub
- :errors/map
+ :form/fields
  (fn [db _]
-   (:errors/map db {})))
+   (:form/fields db)))
+
+(rf/reg-sub
+ :form/field
+ :<- [:form/fields]
+ (fn [fields [_ id]]
+   (get fields id)))
 
 (rf/reg-event-db 
- :errors/set
- (fn [db [_ errors]]
-   (-> db
-       (assoc :errors/map errors))))
+ :form/set-server-errors
+ [(rf/path :form/server-errors)]
+ (fn [_ [_ errors]]
+   errors))
+
+(rf/reg-sub
+ :form/server-errors
+ (fn [db _]
+   (:form/server-errors db)))
+
+(rf/reg-sub
+ :form/validation-errors
+ :<- [:form/fields]
+ (fn [fields _]
+   (validate-message fields)))
+
+(rf/reg-sub
+ :form/validation-errors?
+ :<- [:form/validation-errors]
+ (fn [errors _]
+   (not (empty? errors))))
+
+(rf/reg-sub
+ :form/errors
+ :<- [:form/validation-errors]
+ :<- [:form/server-errors]
+ (fn [[validation server] _]
+   (merge validation server)))
+
+(rf/reg-sub
+ :form/error
+ :<- [:form/errors]
+ (fn [errors [_ id]]
+   (get errors id)))
 
 (rf/reg-sub 
  :messages/loading?
@@ -42,28 +91,45 @@
  (fn [db [_ message]]
    (update db :messages/list conj message)))
 
-(defn send-message! [fields]
-  (if-let [validation-errors (validate-message @fields)]
-    (rf/dispatch [:errors/set validation-errors])
-    (POST "/api/message"
-      {:format :json
-       :headers {"Accept" "application/transit+json" "x-csrf-token" (.-value (.getElementById js/document "token"))}
-       :params @fields
-       :handler #(do
-                   (rf/dispatch [:message/add (assoc @fields :timestamp (js/Date.))])
-                   (rf/dispatch [:errors/set nil])
-                   (reset! fields nil))
-       :error-handler #(do
-                         (.log js/console (str %))
-                         (rf/dispatch [:errors/set (get-in % [:response :errors])]))})))
+(rf/reg-event-fx 
+ :message/send!
+ (fn [{:keys [db]} [_ fields]]
+   (POST "/api/message"
+     {:format :json
+      :headers {"Accept" "application/transit+json" "x-csrf-token" (.-value (.getElementById js/document "token"))}
+      :params fields
+      :handler #(do
+                  (rf/dispatch 
+                   [:message/add 
+                    (-> fields (assoc :timestamp (js/Date.)))]))
+      :error-handler #(rf/dispatch 
+                       [:form/set-server-errors 
+                        (get-in % [:response :errors])])})
+   {:db  (dissoc db :form/server-errors)}))
+(rf/reg-event-fx 
+ :app/initialize
+ (fn [_ _]
+   {:db {:messages/loading? true}
+    :dispatch [:messages/load]}))
 
-(defn get-messages []
-  (GET "/api/messages"
-    {:headers {"Accept" "application/transit+json"}
-     :handler #(rf/dispatch [:messages/set (:messages %)])}))
+(rf/reg-event-fx 
+ :messages/load
+ (fn [{:keys [db]} _]
+   (GET "/api/messages"
+     {:headers {"Accept" "application/transit+json"}
+      :handler #(rf/dispatch [:messages/set (:messages %)])})
+   {:db (assoc db :messages/loading? true)}))
+
+(defn reload-messages-button []
+  (let [loading? (rf/subscribe [:messages/loading?])]
+    [:button.button.is-info.is-fullwidth
+     {:on-click #(rf/dispatch [:messages/load])
+      :disabled @loading?}
+     (if @loading?
+       "Loading Messages"
+       "Refresh Messages")]))
 
 (defn message-list [messages]
-  (println messages)
   [:ul.messages
    (for [{:keys [timestamp message name]} @messages]
      ^{:key timestamp}
@@ -72,34 +138,43 @@
       [:p message]
       [:p " - " name]])])
 
-(defn errors-component [errors id]
-  (when-let [error (id @errors)]
+(defn errors-component [id]
+  (when-let [error @(rf/subscribe [:form/error id])]
     [:div.notification.is-danger (string/join error)]))
 
 (defn message-form []
     (let [fields (r/atom {})
           errors (rf/subscribe [:errors/map])]
         (fn []
-          (println "errors in message form" errors)
           [:div
+           [errors-component :server-error]
            [:div.field
             [:label.label {:for :name} "Name"]
-            [errors-component errors :name]
+            [errors-component :name]
             [:input.input
              {:type :text
               :name :name
-              :on-change #(swap! fields assoc :name (-> % .-target .-value))
-              :value (:name @fields)}]]
+              :on-change #(rf/dispatch 
+                           [:form/set-field 
+                            :name 
+                            (.. % -target -value)])
+              :value @(rf/subscribe [:form/field :name])}]]
            [:div.field
             [:label.label {:for :message} "Message"]
-            [errors-component errors :message]
+            [errors-component :message]
             [:textarea.textarea
              {:name :message
-              :on-change #(swap! fields assoc :message (-> % .-target .-value))
-              :value (:message @fields)}]]
+              :on-change #(rf/dispatch [:form/set-field
+                                        :message
+                                        (.. % -target -value)])
+              :value @(rf/subscribe [:form/field :message])}]]
            [:input.button.is-primary
             {:type :submit
-             :on-click #(send-message! fields)
+             :disabled @(rf/subscribe [:form/validation-errors?])
+             :on-click #(rf/dispatch
+                         [:message/send!
+                          @(rf/subscribe
+                            [:form/fields])])
              :value "comment"}]
            [:p "Name: " (:name @fields)]
            [:p "Message: " (:message @fields)]
@@ -109,7 +184,6 @@
 (defn home []
   (let [messages (rf/subscribe [:messages/list])]
     (rf/dispatch [:app/initialize])
-    (get-messages)
     (fn []
       (if @(rf/subscribe [:messages/loading?])
         [:div>div.row>div.span12>h3
@@ -117,24 +191,18 @@
         [:div.content>div.columns.is-centered>div.column.is-two-thirds
          [:div.columns>div.column
           [:h3 "Messages"]
-          [message-list messages]
-          [:div.columns>div.column
-           [message-form]]]]))))
+          [message-list messages]]
+         [:div.columns>div.column
+          [reload-messages-button]]
+         [:div.columns>div.column
+          [message-form]]]))))
 
 (defn ^:dev/after-load mount-components []
   (.log js/console "Mounting Components...")
-  (r/render [#'home] (.getElementById js/document "content"))
+  (rd/render [#'home] (.getElementById js/document "content"))
   (.log js/console "Components Mounted!"))
 
 (defn init! []
   (.log js/console "Initializing App...")
   (rf/dispatch [:app/initialize])
-  (get-messages)
   (mount-components))
-
-(r/render
- [home]
- (.getElementById js/document "content"))
-
-(comment 
-  (+ 2 2))

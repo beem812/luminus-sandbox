@@ -77,5 +77,3 @@
 (comment
   (start-app ""))
 
-(comment 
-  (.getBytes "dab,dip"))
