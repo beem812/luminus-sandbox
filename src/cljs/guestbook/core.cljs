@@ -2,8 +2,9 @@
     (:require [reagent.core :as r]
               [reagent.dom :as rd]
               [re-frame.core :as rf]
-              [ajax.core :refer [GET POST]]
+              [ajax.core :refer [GET]]
               [clojure.string :as string]
+              [guestbook.websockets :as ws]
               [guestbook.validation :refer [validate-message]]))
 
 (rf/reg-event-fx 
@@ -94,18 +95,9 @@
 (rf/reg-event-fx 
  :message/send!
  (fn [{:keys [db]} [_ fields]]
-   (POST "/api/message"
-     {:format :json
-      :headers {"Accept" "application/transit+json" "x-csrf-token" (.-value (.getElementById js/document "token"))}
-      :params fields
-      :handler #(do
-                  (rf/dispatch 
-                   [:message/add 
-                    (-> fields (assoc :timestamp (js/Date.)))]))
-      :error-handler #(rf/dispatch 
-                       [:form/set-server-errors 
-                        (get-in % [:response :errors])])})
-   {:db  (dissoc db :form/server-errors)}))
+   (ws/send-message! fields)
+   {:db (dissoc db :form/server-errors)}))
+
 (rf/reg-event-fx 
  :app/initialize
  (fn [_ _]
@@ -119,6 +111,15 @@
      {:headers {"Accept" "application/transit+json"}
       :handler #(rf/dispatch [:messages/set (:messages %)])})
    {:db (assoc db :messages/loading? true)}))
+
+(defn handle-response! [response]
+  (println "Response: " response)
+  (if-let [errors (:errors response)]
+
+    (rf/dispatch [:form/set-server-errors errors])
+    (do
+      (rf/dispatch [:message/add response])
+      (rf/dispatch [:form/clear-fields response]))))
 
 (defn reload-messages-button []
   (let [loading? (rf/subscribe [:messages/loading?])]
@@ -143,43 +144,37 @@
     [:div.notification.is-danger (string/join error)]))
 
 (defn message-form []
-    (let [fields (r/atom {})
-          errors (rf/subscribe [:errors/map])]
-        (fn []
-          [:div
-           [errors-component :server-error]
-           [:div.field
-            [:label.label {:for :name} "Name"]
-            [errors-component :name]
-            [:input.input
-             {:type :text
-              :name :name
-              :on-change #(rf/dispatch 
-                           [:form/set-field 
-                            :name 
-                            (.. % -target -value)])
-              :value @(rf/subscribe [:form/field :name])}]]
-           [:div.field
-            [:label.label {:for :message} "Message"]
-            [errors-component :message]
-            [:textarea.textarea
-             {:name :message
-              :on-change #(rf/dispatch [:form/set-field
-                                        :message
-                                        (.. % -target -value)])
-              :value @(rf/subscribe [:form/field :message])}]]
-           [:input.button.is-primary
-            {:type :submit
-             :disabled @(rf/subscribe [:form/validation-errors?])
-             :on-click #(rf/dispatch
-                         [:message/send!
-                          @(rf/subscribe
-                            [:form/fields])])
-             :value "comment"}]
-           [:p "Name: " (:name @fields)]
-           [:p "Message: " (:message @fields)]
-           [:p "Errors: " @errors]])))
-
+  (fn []
+    [:div
+     [errors-component :server-error]
+     [:div.field
+      [:label.label {:for :name} "Name"]
+      [errors-component :name]
+      [:input.input
+       {:type :text
+        :name :name
+        :on-change #(rf/dispatch
+                     [:form/set-field
+                      :name
+                      (.. % -target -value)])
+        :value @(rf/subscribe [:form/field :name])}]]
+     [:div.field
+      [:label.label {:for :message} "Message"]
+      [errors-component :message]
+      [:textarea.textarea
+       {:name :message
+        :on-change #(rf/dispatch [:form/set-field
+                                  :message
+                                  (.. % -target -value)])
+        :value @(rf/subscribe [:form/field :message])}]]
+     [:input.button.is-primary
+      {:type :submit
+       :disabled @(rf/subscribe [:form/validation-errors?])
+       :on-click #(rf/dispatch
+                   [:message/send!
+                    @(rf/subscribe
+                      [:form/fields])])
+       :value "comment"}]]))
 
 (defn home []
   (let [messages (rf/subscribe [:messages/list])]
@@ -205,4 +200,6 @@
 (defn init! []
   (.log js/console "Initializing App...")
   (rf/dispatch [:app/initialize])
+  (ws/connect! (str "ws://" (.-host js/location) "/ws")
+               handle-response!)
   (mount-components))

@@ -12,6 +12,7 @@
                  [expound "0.8.3"]
                  [funcool/struct "1.4.0"]
                  [luminus-http-kit "0.1.6"]
+                 [http-kit "2.3.0"]
                  [luminus-migrations "0.6.6"]
                  [luminus-transit "0.1.2"]
                  [luminus/ring-ttl-session "0.3.3"]
