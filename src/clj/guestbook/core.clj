@@ -75,5 +75,6 @@
   
 
 (comment
-  (start-app ""))
+  (start-app "")
+  (stop-app))
 

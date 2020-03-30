@@ -4,6 +4,7 @@
               [re-frame.core :as rf]
               [ajax.core :refer [GET]]
               [clojure.string :as string]
+              [mount.core :as mount]
               [guestbook.websockets :as ws]
               [guestbook.validation :refer [validate-message]]))
 
@@ -93,10 +94,19 @@
    (update db :messages/list conj message)))
 
 (rf/reg-event-fx 
+ :message/send!-called-back
+ (fn [_ [_ {:keys [success errors]}]]
+   (if success
+     {:dispatch [:form/clear-fields]}
+     {:dispatch [:form/set-server-errors errors]})))
+
+(rf/reg-event-fx 
  :message/send!
  (fn [{:keys [db]} [_ fields]]
-   (ws/send-message! fields)
-   {:db (dissoc db :form/server-errors)}))
+   {:db (dissoc db :form/server-errors)
+    :ws/send! {:message [:message/create! fields]
+               :timeout 10000
+               :callback-event [:message/send!-called-back]}}))
 
 (rf/reg-event-fx 
  :app/initialize
@@ -199,7 +209,6 @@
 
 (defn init! []
   (.log js/console "Initializing App...")
+  (mount/start)
   (rf/dispatch [:app/initialize])
-  (ws/connect! (str "ws://" (.-host js/location) "/ws")
-               handle-response!)
   (mount-components))
